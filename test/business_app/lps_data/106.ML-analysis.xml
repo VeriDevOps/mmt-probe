@@ -1,0 +1,79 @@
+<beginning>
+
+<embedded_functions><![CDATA[
+#define PY_SSIZE_T_CLEAN
+#include </usr/include/python3.8/Python.h>
+#include <stdlib.h>
+#include <string.h>
+
+int em_call_ex_python(uint64_t trolley_pos, uint64_t hoist_pos, uint64_t no_of_marker, uint64_t m1_x, uint64_t m1_y, 
+                 uint64_t m2_x, uint64_t m2_y, uint64_t m3_x, uint64_t m3_y)
+{
+    PyObject *pName, *pModule, *pDict, *pFunc;
+    PyObject *pArgs, *pValue;
+    Py_Initialize();
+    // File ml_classifier.py must be located with the rest of the python modules at /usr/lib/python3/dist-packages/
+    pName = PyUnicode_FromString("ml_classifier"); 
+    pModule = PyImport_Import(pName);
+
+    if (pModule != NULL) {
+        PyObject *TrolleyPos;
+        PyObject *Hoistpos;
+        PyObject *NoOfMarkers;
+        PyObject *m1_x;
+        PyObject *m1_y;
+        PyObject *m2_x; 
+        PyObject *m2_y;
+        PyObject *m3_x;
+        PyObject *m3_y;
+        TrolleyPos = Py_BuildValue("s","1"); 
+        Hoistpos = Py_BuildValue("s","2"); 
+        NoOfMarkers = Py_BuildValue("s","3"); 
+        m1_x = Py_BuildValue("s","4"); 
+        m1_y = Py_BuildValue("s","5"); 
+        m2_x = Py_BuildValue("s","6");  
+        m2_y = Py_BuildValue("s","7"); 
+        m3_x = Py_BuildValue("s","8"); 
+        m3_y = Py_BuildValue("s","9"); 
+        if (pValue == NULL) {
+            Py_Finalize();
+            return 5;
+        }
+        pFunc = PyObject_GetAttrString(pModule, "ml_classifier");
+        if (pFunc && PyCallable_Check(pFunc)) {
+            pValue = PyObject_CallFunctionObjArgs(pFunc,TrolleyPos,Hoistpos,NoOfMarkers,m1_x,m1_y,m2_x,m2_y,m3_x,m3_y, NULL);
+            if (pValue != NULL) {
+                printf("Value returned from the function %s\n", PyUnicode_AsUTF8(pValue));
+                return atoi(PyUnicode_AsUTF8(pValue));
+                Py_Finalize();
+            } else {
+                PyErr_Print();
+                Py_Finalize();
+            }
+        } else {
+            if (PyErr_Occurred())
+                PyErr_Print();
+            fprintf(stderr, "Cannot find function ml_classifier\n");
+            Py_Finalize();
+        }
+    }
+    else {
+        PyErr_Print();
+        fprintf(stderr, "Failed to load ml_classifier.py\n");
+        Py_Finalize();  
+        return 5;
+    }
+}
+
+]]></embedded_functions>
+
+
+<property property_id="116" type_property="ATTACK" value="THEN" 
+    description="Suspicious number of candidate markers">
+    <event event_id="1" description="Suspicious number of candidate markers" 
+           boolean_expression="( ( lps_data.no_of_marker &lt; 3 ) )"/>   
+    <event event_id="2" description="Suspicious number of candidate markers" 
+           boolean_expression="( ( #em_call_ex_python(lps_data.trolley_pos,lps_data.hoist_pos, lps_data.no_of_marker, lps_data.m1_x, lps_data.m1_y,lps_data.m2_x, lps_data.m2_y, lps_data.m3_x, lps_data.m3_y) == 5 ))"/>
+</property>
+
+</beginning>
